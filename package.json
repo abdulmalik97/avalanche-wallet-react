@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@chakra-ui/react": "^1.6.8",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "moralis": "^0.0.54",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-moralis": "^0.2.3",
     "react-scripts": "4.0.3",
     "web-vitals": "^1.0.1"
   },
@@ -21,7 +24,15 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "react-hooks/exhaustive-deps": [
+        "warn",
+        {
+          "enableDangerousAutofixThisMayCauseInfiniteLoops": true
+        }
+      ]
+    }
   },
   "browserslist": {
     "production": [
@@ -34,5 +45,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.22.0",
+    "prettier": "^2.4.1"
   }
 }
