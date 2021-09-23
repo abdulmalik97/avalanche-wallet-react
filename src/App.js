@@ -231,3 +231,25 @@ function App() {
 }
 
 export default App;
+
+//https://docs.moralis.io/moralis-server/automatic-transaction-sync/historical-transactions#watch-address-from-code
+// MAke sure your address is lowercase whilequerying or calling cloud
+// const {
+//   fetch: fetchCloudFunction,
+//   data: dataFromCloudFunction,
+//   error: e,
+//   isLoading: isLoadingResponse,
+// } = useMoralisCloudFunction("watchAvaxAddress", {
+//   address: "0x3d2336e5dc92ae517f295e3fa306bd7bf50c6e3d",
+//   sync_historical: true,
+// });
+//https://github.com/MoralisWeb3/react-moralis#realtime--live-queries
+// const {
+//   fetch: fetchAvaxTransactions,
+//   data: dataAvaxTransactions,
+//   error: e,
+//   isLoading: isLoadingTransactions,
+// } = useMoralisQuery("AvaxTransactions", (query) => query.equalTo("from_address", "0x3d2336e5dc92ae517f295e3fa306bd7bf50c6e3d"), [], {
+//   live: true,
+// });
+// console.log(dataAvaxTransactions, "Transactions updating in real time");
