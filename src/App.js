@@ -1,9 +1,11 @@
 import logo from "./avalancheLogo.jpg";
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { useMoralis, MoralisProvider, useMoralisWeb3ApiCall, useMoralisWeb3Api } from "react-moralis";
-import { Button, ButtonGroup, Box, Wrap, Text, Heading, Divider, Stack } from "@chakra-ui/react";
+import { useMoralis, useMoralisWeb3ApiCall, useMoralisWeb3Api, useMoralisQuery, useMoralisCloudFunction } from "react-moralis";
+import { Button, ButtonGroup, Box, Wrap, Text, Heading, Divider, Stack, Alert, AlertIcon } from "@chakra-ui/react";
 import { Table, Thead, Tbody, Tfoot, Tr, Th, Td, TableCaption, Container, Center } from "@chakra-ui/react";
+
+const chain = "avalanche";
 
 const LogoutButton = () => {
   const { logout, isAuthenticating } = useMoralis();
@@ -94,11 +96,12 @@ const displayNFTBalancesTable = (NFTData) => {
 
 // ---------- APP -------------
 function App() {
-  const { authenticate, isAuthenticated, user } = useMoralis();
+  const { authenticate, isAuthenticated, user, Moralis } = useMoralis();
+
   const Web3Api = useMoralisWeb3Api();
   //------ Moralis Web3 API methods for Native, ERC20 & NFT  ---------
   const { fetch, data, error, isLoading } = useMoralisWeb3ApiCall(Web3Api.account.getNativeBalance, {
-    chain: "rinkeby",
+    chain: chain,
   });
   const {
     fetch: tokenFetch,
@@ -106,7 +109,7 @@ function App() {
     error: tokenError,
     isLoading: tokenIsLoading,
   } = useMoralisWeb3ApiCall(Web3Api.account.getTokenBalances, {
-    chain: "rinkeby",
+    chain: chain,
   });
 
   const {
@@ -115,10 +118,11 @@ function App() {
     error: nftError,
     isLoading: nftLoading,
   } = useMoralisWeb3ApiCall(Web3Api.account.getNFTs, {
-    chain: "rinkeby",
+    chain: chain,
   });
   //----------------- Setting User in state   ----------
   const [userState, setUserState] = useState(null);
+  const [openModel, setOpenModel] = useState(false);
 
   useEffect(() => {
     //call API every 5 seconds
@@ -131,13 +135,29 @@ function App() {
       }
     }, 5000);
     //clear the interval
+    console.log(user, "USER");
     return () => clearInterval(interval);
   }, [user]);
+
+  //if chain is changed let the user know
+  Moralis.onChainChanged(async function (chain) {
+    if (chain !== "0xa86a") {
+      setOpenModel(true);
+    } else {
+      setOpenModel(false);
+    }
+  });
 
   // ----- Authenticate in Metamask---------
   if (!isAuthenticated) {
     return (
       <Container maxW="container.lg">
+        {openModel && (
+          <Alert status="error">
+            <AlertIcon />
+            Please switch to Avalanche Network
+          </Alert>
+        )}
         <Center>
           <img width={500} height={500} src={logo} alt="logo" />
         </Center>
@@ -158,6 +178,12 @@ function App() {
 
   return (
     <Box display={"block"} p={35} className="App">
+      {openModel && (
+        <Alert status="error">
+          <AlertIcon />
+          Please switch to Avalanche Network
+        </Alert>
+      )}
       <LogoutButton />
       <Center>
         <img width={500} height={500} src={logo} alt="logo" />
@@ -172,7 +198,7 @@ function App() {
       {!isLoading && data !== null ? (
         <Stack direction={["column", "row"]} spacing="24px">
           <Text fontSize="2xl" style={{ padding: "10px", textAlign: "initial", fontWeight: "bold" }}>
-            AVAX/ETH Balance : {data.balance / ("1e" + 18)}
+            AVAX Balance : {data.balance / ("1e" + 18)}
           </Text>
           <Button style={{ display: "block" }} colorScheme="green" variant="outline" onClick={() => fetch()} disabled={isLoading}>
             Refetch Native balance
