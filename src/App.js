@@ -15,6 +15,7 @@ const LogoutButton = () => {
   );
 };
 
+// ------- Render balance Tables --------
 const displayTokenBalancesTable = (tokenData) => {
   return (
     <div>
@@ -27,17 +28,25 @@ const displayTokenBalancesTable = (tokenData) => {
           </Tr>
         </Thead>
         <Tbody>
-          {tokenData.map((element, i) => {
-            return (
-              <React.Fragment key={i}>
-                <Tr>
-                  <Td>{element.name}</Td>
-                  <Td>{element.balance / ("1e" + element.decimals)}</Td>
-                  <Td>{element.symbol}</Td>
-                </Tr>
-              </React.Fragment>
-            );
-          })}
+          {tokenData.length !== 0 ? (
+            tokenData.map((element, i) => {
+              return (
+                <React.Fragment key={i}>
+                  <Tr>
+                    <Td>{element.name}</Td>
+                    <Td>{element.balance / ("1e" + element.decimals)}</Td>
+                    <Td>{element.symbol}</Td>
+                  </Tr>
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <Tr>
+              <Td></Td>
+              <Td>No Tokens</Td>
+              <Td></Td>
+            </Tr>
+          )}
         </Tbody>
       </Table>
     </div>
@@ -54,40 +63,42 @@ const displayNFTBalancesTable = (NFTData) => {
             <Th>Token Address</Th>
             <Th>Token ID</Th>
             <Th>Contract Type</Th>
-
-            {/* <Th>Symbol</Th> */}
           </Tr>
         </Thead>
         <Tbody>
-          {NFTData.result.map((element, i) => {
-            return (
-              <React.Fragment key={i}>
-                <Wrap>
+          {NFTData.length !== 0 ? (
+            NFTData.result.map((element, i) => {
+              return (
+                <React.Fragment key={i}>
                   <Tr>
                     <Td>{element.name}</Td>
-                    <Td>
-                      <Wrap>{element.token_address}</Wrap>
-                    </Td>
-                    <Td>
-                      <Wrap>{element.token_id}</Wrap>
-                    </Td>
+                    <Td>{element.token_address}</Td>
+                    <Td style={{ lineBreak: "anywhere" }}>{element.token_id}</Td>
                     <Td>{element.contract_type}</Td>
                   </Tr>
-                </Wrap>
-              </React.Fragment>
-            );
-          })}
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <Tr>
+              <Td></Td>
+              <Td>No NFTs</Td>
+              <Td></Td>
+            </Tr>
+          )}
         </Tbody>
       </Table>
     </Box>
   );
 };
 
+// ---------- APP -------------
 function App() {
   const { authenticate, isAuthenticated, user } = useMoralis();
   const Web3Api = useMoralisWeb3Api();
+  //------ Moralis Web3 API methods for Native, ERC20 & NFT  ---------
   const { fetch, data, error, isLoading } = useMoralisWeb3ApiCall(Web3Api.account.getNativeBalance, {
-    chain: "avalanche",
+    chain: "rinkeby",
   });
   const {
     fetch: tokenFetch,
@@ -95,7 +106,7 @@ function App() {
     error: tokenError,
     isLoading: tokenIsLoading,
   } = useMoralisWeb3ApiCall(Web3Api.account.getTokenBalances, {
-    chain: "avalanche",
+    chain: "rinkeby",
   });
 
   const {
@@ -104,9 +115,26 @@ function App() {
     error: nftError,
     isLoading: nftLoading,
   } = useMoralisWeb3ApiCall(Web3Api.account.getNFTs, {
-    chain: "avalanche",
+    chain: "rinkeby",
   });
+  //----------------- Setting User in state   ----------
+  const [userState, setUserState] = useState(null);
 
+  useEffect(() => {
+    //call API every 5 seconds
+    const interval = setInterval(() => {
+      if (user) {
+        setUserState(user);
+        fetch();
+        tokenFetch();
+        nftFetch();
+      }
+    }, 5000);
+    //clear the interval
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // ----- Authenticate in Metamask---------
   if (!isAuthenticated) {
     return (
       <Container maxW="container.lg">
@@ -130,8 +158,6 @@ function App() {
 
   return (
     <Box display={"block"} p={35} className="App">
-      {/* <header className="App-header"> */}
-      {/* <img src={logo} className="App-logo" alt="logo" /> */}
       <LogoutButton />
       <Center>
         <img width={500} height={500} src={logo} alt="logo" />
@@ -142,10 +168,11 @@ function App() {
           Avalanche Wallet Tracker
         </Heading>
       </Center>
+      {/* ------  Native Balance -------- */}
       {!isLoading && data !== null ? (
         <Stack direction={["column", "row"]} spacing="24px">
           <Text fontSize="2xl" style={{ padding: "10px", textAlign: "initial", fontWeight: "bold" }}>
-            AVAX Balance : {data.balance / ("1e" + 18)}
+            AVAX/ETH Balance : {data.balance / ("1e" + 18)}
           </Text>
           <Button style={{ display: "block" }} colorScheme="green" variant="outline" onClick={() => fetch()} disabled={isLoading}>
             Refetch Native balance
@@ -160,7 +187,7 @@ function App() {
       <Text fontSize="3xl" style={{ textAlign: "initial", fontWeight: "bold" }}>
         Wallet Tokens
       </Text>
-      <Button colorScheme="green" variant="outline" onClick={() => fetch()} disabled={tokenIsLoading}>
+      <Button colorScheme="green" variant="outline" onClick={() => tokenFetch()} disabled={tokenIsLoading}>
         Refetch Tokens
       </Button>
       {!tokenIsLoading && tokenData !== null ? displayTokenBalancesTable(tokenData) : <p>Loading</p>}
